@@ -11,6 +11,17 @@ The application uses Nebius Token Factory for model inference and Tavily for rea
 - [Architecture](ARCHITECTURE.md)
 - [Validation and known limitations](VALIDATION.md)
 
+## Team
+
+Fieldwork was built by Team InVis.
+
+| Member | GitHub |
+|---|---|
+| Prasanna Ram SJ — Team captain | [Prasanna-Ram-SJ](https://github.com/Prasanna-Ram-SJ) |
+| Kamalika M | [kamalika-0412](https://github.com/kamalika-0412) |
+| Harishma Muthuram | [harishmamuthuram](https://github.com/harishmamuthuram) |
+| Kirthik | [kirutikzz30](https://github.com/kirutikzz30) |
+
 ## The student research problem
 
 A research answer is difficult to use responsibly when the reader cannot tell which source supports a statement, whether a source is a complete paper or a short excerpt, and where uncertainty remains. Students also need to carry evidence into an assignment: compare studies, keep notes and produce references without repeatedly reconstructing the research trail.
