@@ -1,0 +1,32 @@
+name = "fieldwork-research"
+main = ".open-next/worker.js"
+compatibility_date = "2026-11-01"
+compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
+workers_dev = true
+preview_urls = false
+
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
+
+[[services]]
+binding = "WORKER_SELF_REFERENCE"
+service = "fieldwork-research"
+
+[[d1_databases]]
+binding = "JUDGE_QUOTA"
+database_name = "fieldwork-judge-quota"
+database_id = "00000000-0000-0000-0000-000000000000"
+
+# Server variables (Production values set securely via wrangler secret put)
+[vars]
+NEBIUS_BASE_URL = "https://api.tokenfactory.nebius.com/v1"
+NEBIUS_MODEL = "moonshotai/Kimi-K3.1-Pro"
+FIELDWORK_CLOUDFLARE = "true"
+JUDGE_LEDGER_BACKEND = "d1"
+MAX_TAVILY_CREDITS_MONTHLY = "800"
+MAX_RESEARCH_TURNS_PER_USER_DAY = "10"
+MAX_SEARCHES_PER_TURN = "3"
+GUEST_RESEARCH_ENABLED = "true"
+MAX_GUEST_REQUESTS_TOTAL = "20"
+

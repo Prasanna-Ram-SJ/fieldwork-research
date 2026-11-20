@@ -1,0 +1,5 @@
+APA and Modern Language Association citation styles and the English locale are
+from the Citation Style Language project. Their license and attribution are
+included in each XML resource, generally Creative Commons Attribution-ShareAlike.
+https://github.com/citation-style-language/styles
+https://github.com/citation-style-language/locales

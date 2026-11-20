@@ -1,0 +1,20 @@
+Prepared Fieldwork example: Open access and citation impact
+
+The sample assignment, comparison, answers and draft judgments are prepared
+editorial examples, not a live AI run. The research papers are real publications.
+Page numbers are the page positions in the linked publisher PDFs. Text is
+extracted from these PDFs; original PDF files are provided unchanged.
+
+Gunther Eysenbach (2006). Citation Advantage of Open Access Articles.
+PLOS Biology 4(5), e157. https://doi.org/10.1371/journal.pbio.0040157
+Publisher: https://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.0040157
+
+Allison Langham-Putrow, Caitlin Bakker, Amy Riegelman (2021).
+Is the open access citation advantage real? A systematic review of the citation
+of open access and subscription-based articles. PLOS ONE 16(6), e0253129.
+https://doi.org/10.1371/journal.pone.0253129
+Publisher: https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0253129
+
+Both articles are distributed under the Creative Commons Attribution License,
+as stated in the publisher PDFs. Original author/source credit is retained.
+https://creativecommons.org/licenses/by/4.0/
