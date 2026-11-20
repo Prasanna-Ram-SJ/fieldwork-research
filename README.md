@@ -6,7 +6,8 @@
 
 - **Live application:** https://fieldwork-research.prasannaramcollege.workers.dev
 - **Repository:** https://github.com/Prasanna-Ram-SJ/fieldwork-research
-- **Project/team:** Fieldwork. Repository maintainer: [@Prasanna-Ram-SJ](https://github.com/Prasanna-Ram-SJ). Additional member details have not been supplied.
+- **Project report:** [Research workflow, evidence handling, implementation and validation](docs/PROJECT_REPORT.md)
+- **Project:** Fieldwork. **Team:** InVis. Repository maintainer: [@Prasanna-Ram-SJ](https://github.com/Prasanna-Ram-SJ). Additional member details have not been supplied.
 - **Demo video (2–3 minutes): Pending recording.** No video link has been supplied yet. This repository alone is not a completed submission.
 - Generated directly from [ODSC's official template](https://github.com/odsc2015/nebius-research-agent-hackaton-template). This is a working research application, not a reusable starter kit or component library.
 
