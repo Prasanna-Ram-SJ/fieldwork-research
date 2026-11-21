@@ -106,6 +106,7 @@ export function describeActivity(
   add("Search credits used", p.tavily_credits);
   add("Model input tokens", p.tokens?.input);
   add("Model output tokens", p.tokens?.output);
+  if (p.token_usage_complete === false) lines.push('Token usage is incomplete: an unavailable provider stage did not return its billing totals. The reported tokens exclude that stage.');
   add("Service message", p.message);
   add("Error code", p.error_code);
   if (typeof p.retryable === "boolean")
