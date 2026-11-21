@@ -8,7 +8,7 @@
 - **Repository:** https://github.com/Prasanna-Ram-SJ/fieldwork-research
 - **Project report:** [Research workflow, evidence handling, implementation and validation](docs/PROJECT_REPORT.md)
 - **Project:** Fieldwork. **Team:** InVis.
-- **Demo video (2–3 minutes): Pending recording.** No video link has been supplied yet. This repository alone is not a completed submission.
+- **Demo video:** [Watch the Fieldwork demo](https://drive.google.com/file/d/16Yu6-egsZXo-J5fizzLTJlQnn1PjaiTk/view?usp=drive_link)
 
 ## Team
 
@@ -111,14 +111,14 @@ Partial results explain omitted unsupported content and gaps. Provider refusals,
 | Criterion | Weight | Where to look |
 |---|---|---|
 | Sourced and verifiable answers | 30% | Workspace Evidence, clickable citations, exact source/passage validators, prepared example. Record citations opening. |
-| Works end to end | 25% | Live Workspace, setup, provider adapters and bounded pipeline. A complete representative live recording remains pending. |
+| Works end to end | 25% | Live Workspace, setup, provider adapters, bounded pipeline and linked demo video. |
 | Usefulness | 20% | Student question-to-evidence workflow, paper tools and reference exports. |
 | Agent design | 15% | Activity trace, query planning/refinement, deduplication, coverage and architecture. |
 | Use of Token Factory and Tavily | 10% | Actual inference/search integrations, configuration and source flow above. |
 
 ## Submission status
 
-The repository is public and template-derived. Demo recording and final organizer submission remain pending. Follow [SUBMISSION_CHECKLIST.md](SUBMISSION_CHECKLIST.md) and the [official event page](https://hackathon.odsc.ai/event). The deadline is **November 20, 2026, 11:59 PM EST**, or **November 21, 2026, 10:29 AM IST**. The event page directs participants to **Submit your project**. Creating a repository does not submit the entry.
+The repository is public and template-derived, and the demo video is linked above. Final organizer submission remains pending. Follow [SUBMISSION_CHECKLIST.md](SUBMISSION_CHECKLIST.md) and the [official event page](https://hackathon.odsc.ai/event). The deadline is **November 20, 2026, 11:59 PM EST**, or **November 21, 2026, 10:29 AM IST**. The event page directs participants to **Submit your project**. Creating a repository does not submit the entry.
 
 ## License
 

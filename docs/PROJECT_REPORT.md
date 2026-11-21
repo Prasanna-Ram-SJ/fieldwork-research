@@ -7,6 +7,7 @@ Fieldwork is a student research application that connects an answer to the evide
 The application uses Nebius Token Factory for model inference and Tavily for real-time web search. It is deployed on Cloudflare Workers, with Supabase for account data and Cloudflare D1 for shared guest and judge quotas.
 
 - [Open Fieldwork](https://fieldwork-research.prasannaramcollege.workers.dev)
+- [Watch the Fieldwork demo](https://drive.google.com/file/d/16Yu6-egsZXo-J5fizzLTJlQnn1PjaiTk/view?usp=drive_link)
 - [Public source and setup instructions](../README.md)
 - [Architecture](ARCHITECTURE.md)
 - [Validation and known limitations](VALIDATION.md)
@@ -80,7 +81,7 @@ Earlier bounded live development checks exercised both required providers. The l
 
 Exact matching establishes that a quotation exists in the retrieved material; it does not prove scientific validity or that every inference is correct. Bounded retrieval can miss context, inaccessible pages may remain excerpt-only, and search ranking does not certify peer review or source independence. Scanned PDFs require external OCR. Planning and verification increase latency and provider cost. Guest allowances are shared and can be exhausted by other visitors.
 
-The demo video remains pending. It should show a real question proceeding through the actual providers, the resulting answer, opened citations and an honest failure or insufficient-evidence case. This report accompanies the source and video; it does not itself submit the project to the organizers.
+The [demo video](https://drive.google.com/file/d/16Yu6-egsZXo-J5fizzLTJlQnn1PjaiTk/view?usp=drive_link) accompanies this report and the public source. The organizer's demonstration criteria call for a real question proceeding through the actual providers, the resulting answer, opened citations and an honest failure or insufficient-evidence case. Linking the video and report does not itself submit the project to the organizers.
 
 ## Source and design provenance
 
