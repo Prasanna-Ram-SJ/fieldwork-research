@@ -5,12 +5,12 @@ import type { ProviderReservation } from '@/lib/providers/request-budget';
 
 export const GUEST_COOKIE = 'fieldwork-guest-research';
 export class GuestError extends Error { constructor(message: string, public status = 403) { super(message); } }
-export const GUEST_DAILY_LIMIT = 3;
-const NETWORK_DAILY_LIMIT = 5;
+export const GUEST_DAILY_LIMIT = 10;
+const NETWORK_DAILY_LIMIT = 20;
 export function guestConfig() {
   const secret = process.env.GUEST_SESSION_SECRET || process.env.JUDGE_SESSION_SECRET || '';
   if (process.env.GUEST_RESEARCH_ENABLED !== 'true' || secret.length < 32) throw new GuestError('Guest research is not available yet. Please sign in to research.', 503);
-  const total = Math.min(20, Math.max(1, Math.floor(Number(process.env.MAX_GUEST_REQUESTS_TOTAL) || 20)));
+  const total = Math.min(100, Math.max(1, Math.floor(Number(process.env.MAX_GUEST_REQUESTS_TOTAL) || 100)));
   return { secret, total };
 }
 function digest(value: string) { return createHmac('sha256', guestConfig().secret).update(value).digest('base64url'); }

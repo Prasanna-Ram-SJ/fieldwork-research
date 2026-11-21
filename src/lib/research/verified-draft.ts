@@ -2,6 +2,7 @@ import type { NormalizedEvidence } from '@/types/research';
 import type { AnswerBlock } from '@/types/database';
 import type { validateReport } from './validate-report';
 import { validateSupports } from './validate-report';
+import { researchNote } from './research-notes';
 
 /** A rejected comparison must not erase independently approved paragraphs. */
 export function retainVerifiedDraft(parsed:ReturnType<typeof validateReport>,evidence:NormalizedEvidence[],review:unknown,forcePartial=false){
@@ -33,13 +34,19 @@ export function retainVerifiedDraft(parsed:ReturnType<typeof validateReport>,evi
   const partial=forcePartial||blocks.length+source_assessments.length<total, excerptsOnly=blocks.length===0;
   if(excerptsOnly){
     // Deterministic quotations, never rejected model prose or an invented answer.
-    blocks=evidence.slice(0,3).flatMap(source=>{
+    blocks=evidence.slice(0,6).flatMap(source=>{
       const passage=source.reading?.passages.find(p=>p.text.trim().length>=16);
       if(!passage)return[];
-      const quote=Array.from(passage.text.trim()).slice(0,280).join('');
-      return[{section:'Source excerpts — answer not established',text:'“'+quote+'”',claim_type:'background' as const,source_refs:[source.source_ref],support:[{source_ref:source.source_ref,passage_id:passage.id,quote}]}];
+      let quote=passage.text.trim().slice(0,1000).replace(/[\uD800-\uDBFF]$/,'');
+      if(quote.length<passage.text.trim().length){
+        const end=Math.max(quote.lastIndexOf('. '),quote.lastIndexOf('? '),quote.lastIndexOf('! '));
+        if(end>=200)quote=quote.slice(0,end+1);
+        else{const space=quote.lastIndexOf(' ');if(space>=200)quote=quote.slice(0,space);}
+      }
+      return[{section:('Source evidence — '+(source.title||source.source_ref)).slice(0,100),text:'“'+quote+'”',claim_type:'background' as const,source_refs:[source.source_ref],support:[{source_ref:source.source_ref,passage_id:passage.id,quote}]}];
     });
     if(!blocks.length)throw Error('No source passages could be verified for this question.');
+    blocks=[researchNote('status',evidence),...blocks,researchNote('limits',evidence),researchNote('next_steps',evidence)];
   }
   const notice=excerptsOnly?'The evidence check could not establish a complete answer. Only exact source excerpts are shown; they do not by themselves establish an answer.':partial?'Some draft statements or source comparisons could not be verified and were omitted. Only approved paragraphs and comparisons are shown.':'';
   return {...parsed,blocks,source_assessments,scope:excerptsOnly?'Source excerpts only. A complete answer has not been established.':parsed.scope,followups:excerptsOnly?[]:parsed.followups,evidence_status:excerptsOnly?'insufficient' as const:partial?'limited' as const:parsed.evidence_status,uncertainty_note:notice||parsed.uncertainty_note,verificationNotice:notice};

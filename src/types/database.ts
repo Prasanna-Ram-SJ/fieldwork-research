@@ -47,7 +47,8 @@ export type MessageRole = 'user' | 'assistant';
 export interface AnswerBlock {
   text: string;
   source_refs: string[]; // e.g. ["S1", "S2"]
-  claim_type?: 'fact' | 'inference' | 'background';
+  claim_type?: 'fact' | 'inference' | 'background' | 'research_note';
+  note_id?: 'status' | 'limits' | 'next_steps';
   caveat?: string;
   section?: string;
   support?: EvidenceSupport[];

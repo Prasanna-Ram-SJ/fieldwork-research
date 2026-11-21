@@ -13,4 +13,7 @@
 .citation-reading>.pager{flex-shrink:0}
 .citation-reading>.source-meta{flex-shrink:0}
 .citation-reading blockquote:focus-visible{outline-offset:-2px}
+.activity-detail{display:flex;flex-direction:column;height:100%;min-height:0;overflow:hidden}
+.activity-detail>.text-button,.activity-detail>.source-meta,.activity-detail>h3,.activity-detail>.pager{flex:none}
+.activity-detail>.activity-full{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding-right:8px}
 .guest-research-note{font:12px/1.4 var(--sans);color:var(--muted);margin:7px 0 0;overflow-wrap:anywhere}

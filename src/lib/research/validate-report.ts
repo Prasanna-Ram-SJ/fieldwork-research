@@ -1,6 +1,7 @@
 import { validateAnswer } from './validate-answer';
 import type { NormalizedEvidence } from '@/types/research';
-import type { EvidenceSupport, ResearchReport } from '@/types/database';
+import type { AnswerBlock, EvidenceSupport, ResearchReport } from '@/types/database';
+import { validateResearchNote } from './research-notes';
 const normalize = (s: string) => s.normalize('NFC').replace(/\s+/g, ' ').trim();
 export function validateSupports(value: unknown, evidence: NormalizedEvidence[]): EvidenceSupport[] {
   if (!Array.isArray(value) || !value.length || value.length > 6) throw Error('A report statement has no inspectable supporting passage.');
@@ -12,12 +13,23 @@ export function validateSupports(value: unknown, evidence: NormalizedEvidence[])
   });
 }
 export function validateReport(raw: any, evidence: NormalizedEvidence[]) {
-  const base = validateAnswer(raw, new Set(evidence.map(e => e.source_ref)));
-  const blocks = base.blocks.map((block,i) => {
-    const original = raw.blocks[i], support = validateSupports(original.support, evidence);
+  if (!Array.isArray(raw?.blocks) || raw.blocks.length > 20) throw Error('Report blocks were invalid.');
+  const contentBlocks = raw.blocks.filter((b: any) => b?.claim_type !== 'research_note');
+  const base = validateAnswer({ ...raw, blocks: contentBlocks }, new Set(evidence.map(e => e.source_ref)));
+  const checkedBlocks = base.blocks.map((block,i) => {
+    const original = contentBlocks[i], support = validateSupports(original.support, evidence);
     if (block.source_refs.some(ref => !support.some(s => s.source_ref === ref)) || support.some(s => !block.source_refs.includes(s.source_ref))) throw Error('A report citation did not match its supporting passage.');
     if (typeof original.section !== 'string' || !original.section.trim() || original.section.length > 100) throw Error('A report section was missing.');
     return { ...block, section: original.section.trim(), support };
+  });
+  let index = 0;
+  const noteIds = new Set<string>();
+  const blocks: AnswerBlock[] = raw.blocks.map((block: any) => {
+    if (block?.claim_type !== 'research_note') return checkedBlocks[index++];
+    const note = validateResearchNote(block, evidence);
+    if (noteIds.has(note.note_id!)) throw Error('Repeated research note.');
+    noteIds.add(note.note_id!);
+    return note;
   });
   if (typeof raw.scope !== 'string' || !raw.scope.trim() || raw.scope.length > 1200) throw Error('Report scope was missing.');
   if (!Array.isArray(raw.source_assessments) || raw.source_assessments.length > evidence.length) throw Error('Source comparison was invalid.');

@@ -53,6 +53,28 @@ test('an explicit model refusal is not bypassed by evidence recovery',async()=>{
  const h=harness([{choices:[{finish_reason:'stop',message:{content:null,refusal:'Offline explicit refusal'}}]}]);await assert.rejects(h.run(),/could not provide a research draft/);assert.equal(h.requests.length,1);
 });
 
+test('an evidence-only result preserves six substantial exact excerpts and separate fixed research notes',()=>{
+ const {retainVerifiedDraft}=loadTs('src/lib/research/verified-draft.ts');
+ const {validateReport}=loadTs('src/lib/research/validate-report.ts');
+ const sources=Array.from({length:8},(_,i)=>({...evidence()[0],source_ref:'S'+(i+1),reading:{...evidence()[0].reading,source_ref:'S'+(i+1),passages:[{id:'p1',text:(text+' ').repeat(12)}]}}));
+ const result=retainVerifiedDraft({...raw(),blocks:[],source_assessments:[]},sources,{approved_indices:[]});
+ assert.equal(result.blocks.filter(b=>b.claim_type==='research_note').length,3);
+ const excerpts=result.blocks.filter(b=>b.claim_type==='background');assert.equal(excerpts.length,6);
+ assert.ok(excerpts.every(b=>b.support[0].quote.length>280));
+ assert.match(result.blocks[0].text,/not proof/);assert.match(result.blocks.at(-1).text,/research steps rather than findings/);
+ validateReport(result,sources);
+});
+
+test('model claims cannot masquerade as fixed uncited research notes',()=>{
+ const {researchNote}=loadTs('src/lib/research/research-notes.ts');
+ const {validateReport}=loadTs('src/lib/research/validate-report.ts');
+ const note=researchNote('limits',evidence());
+ assert.throws(()=>validateReport({...raw(),blocks:[...raw().blocks,{...note,text:'An invented scientific result.'}]},evidence()),/modified/);
+ assert.throws(()=>validateReport({...raw(),blocks:[...raw().blocks,{...note,source_refs:['S1']}]},evidence()),/source claim/);
+ const {prepareReportDraft}=loadTs('src/lib/research/report-draft.ts');
+ assert.equal(prepareReportDraft({...raw(),blocks:[note]},evidence(),'question').draft.blocks.length,0);
+});
+
 test('the real guest runner completes the screenshot question when generation omits support',async()=>{
  const draft=raw();delete draft.blocks[0].support;delete draft.source_assessments[0].support;
  const h=harness([completion(draft),completion({approved_indices:[0,1],support_updates:[{index:0,support:support()},{index:1,support:support()}]})]);

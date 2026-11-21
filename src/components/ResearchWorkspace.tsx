@@ -59,6 +59,7 @@ const groupLabels = {
   fact: "Findings",
   inference: "Interpretation",
   background: "Background",
+  research_note: "Research notes",
 };
 function groups(answer: AssistantContent) {
   const out: { label: string; blocks: AnswerBlock[] }[] = [];
@@ -285,7 +286,7 @@ function ActivityPanel() {
     const text = describeActivity(event, r.events),
       chunks = textPages(text, capacity.characters);
     return (
-      <div className="evidence-detail">
+      <div className="evidence-detail activity-detail">
         <button className="text-button" onClick={() => setSelected(null)}>
           <ChevronLeft size={14} /> All activity
         </button>

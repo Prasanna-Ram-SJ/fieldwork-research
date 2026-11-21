@@ -80,11 +80,11 @@ test('guest cookies are signed, expire, and cannot be used as judge sessions',()
 test('guest reservations enforce daily visitor and network caps, including cleared cookies and duplicate requests',async()=>{
  const restore=environment(),{db,sqlite}=database();try{const a=loadTs('src/lib/guest/access.ts'),now=Date.now(),day=Date.parse(new Date(now).toISOString().slice(0,10)+'T01:00:00Z'),identity=a.guestIdentity(randomUUID(),'192.0.2.1',day),id=randomUUID();
  await a.reserveGuest(db,identity,id,day);await assert.rejects(a.reserveGuest(db,identity,id,day+21000),/only once/);
- await a.reserveGuest(db,identity,randomUUID(),day+21000);await a.reserveGuest(db,identity,randomUUID(),day+42000);
- await assert.rejects(a.reserveGuest(db,identity,randomUUID(),day+63000),/allowance reached/);
- for(let i=0;i<2;i++)await a.reserveGuest(db,a.guestIdentity(randomUUID(),'192.0.2.1',day),randomUUID(),day);
+ for(let i=1;i<10;i++)await a.reserveGuest(db,identity,randomUUID(),day+i*21000);
+ await assert.rejects(a.reserveGuest(db,identity,randomUUID(),day+210000),/allowance reached/);
+ for(let i=0;i<10;i++)await a.reserveGuest(db,a.guestIdentity(randomUUID(),'192.0.2.1',day),randomUUID(),day);
  await assert.rejects(a.reserveGuest(db,a.guestIdentity(randomUUID(),'192.0.2.1',day),randomUUID(),day),/allowance reached/);
- assert.equal(sqlite.prepare('SELECT COUNT(*) AS n FROM guest_research_reservations').get().n,5);
+ assert.equal(sqlite.prepare('SELECT COUNT(*) AS n FROM guest_research_reservations').get().n,20);
  }finally{sqlite.close();restore();}
 });
 test('atomic guest reservations cap concurrent callers and never reset shared capacity',async()=>{
@@ -128,9 +128,9 @@ test('rejected research returns only exact excerpts when no model paragraphs pas
  const evidence=[{source_ref:'S1',reading:{passages:[{id:'p1',text:'This is an offline source passage, included to verify exact quotations rather than model assertions.'}]}}];
  const draft={blocks:[{text:'An unsupported invented conclusion.',claim_type:'fact',source_refs:['S1']}],source_assessments:[],scope:'An unsupported scope',followups:['An unsupported premise?'],evidence_status:'supported',uncertainty_note:'An unsupported additional model assertion.'};
  const result=retainVerifiedDraft(draft,evidence,{approved_indices:[]});
- assert.equal(result.evidence_status,'insufficient');assert.equal(result.blocks.length,1);assert.ok(!JSON.stringify(result).includes('unsupported'));assert.deepEqual(result.followups,[]);
+ assert.equal(result.evidence_status,'insufficient');assert.equal(result.blocks.filter(b=>b.claim_type==='background').length,1);assert.ok(!JSON.stringify(result).includes('unsupported'));assert.deepEqual(result.followups,[]);
  assert.match(result.uncertainty_note,/could not establish a complete answer/);assert.match(result.blocks[0].section,/answer not established/);
- assert.equal(validateSupports(result.blocks[0].support,evidence).length,1);
+ assert.equal(validateSupports(result.blocks.find(b=>b.claim_type==='background').support,evidence).length,1);
 });
 test('invalid verification decisions never expose unchecked draft paragraphs',()=>{
  const {retainVerifiedDraft}=loadTs('src/lib/research/verified-draft.ts');const draft={blocks:[{text:'unchecked'}],source_assessments:[]};

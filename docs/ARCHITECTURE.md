@@ -27,7 +27,7 @@ Provider adapters use actual Token Factory/Tavily APIs. Nebius uses native web f
 
 Authenticated requests reserve Supabase capacity transactionally. RLS isolates conversations, projects, sources and activity. Google OAuth uses Supabase callbacks; no Google client secret is placed in browser source.
 
-Hosted guests have signed cookies and D1 limits: three questions/guest/UTC day, five/network/UTC day and twenty shared launch questions total. Conservative provider exposure is reserved per paid request. Network keys do not store raw IP addresses. Answers stay in the open tab and are not migrated by signing in. Optional judge access has its own code/session and persistent allowance; missing quota state fails closed. Refreshing or deleting conversations does not reset reservations.
+Hosted guests have signed cookies and D1 limits: ten questions/guest/UTC day, twenty/network/UTC day and one hundred shared launch questions total. Conservative provider exposure is reserved per paid request. Network keys do not store raw IP addresses. Answers stay in the open tab and are not migrated by signing in. Optional judge access has its own code/session and persistent allowance; missing quota state fails closed. Refreshing or deleting conversations does not reset reservations.
 
 Projects supports assignments, Crossref metadata discovery, text PDF extraction, selected-paper comparison/Q&A, draft claims, notes and exports. Quotations link to extracted page positions. Original uploaded PDFs stay in the browser; extracted text/analyses can be account-saved. Scanned documents require external OCR.
 

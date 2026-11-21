@@ -44,7 +44,7 @@ export function reportReviewInput(draft:ReportDraft,evidence:NormalizedEvidence[
     ...draft.source_assessments.map(s=>({text:[s.contribution,s.method,s.limitation].join('\n'),interpretation:true,allowed_source_refs:[s.source_ref],support:s.support}))];
   const needed=new Map<string,Set<string>|null>();
   for(const statement of statements)for(const ref of statement.allowed_source_refs){
-    const proofs=statement.support.filter(p=>p.source_ref===ref);
+    const proofs=(statement.support||[]).filter(p=>p.source_ref===ref);
     if(!proofs.length){needed.set(ref,null);continue;}
     if(needed.has(ref)&&needed.get(ref)===null)continue;
     const ids=needed.get(ref)||new Set<string>();for(const proof of proofs)ids.add(proof.passage_id);needed.set(ref,ids);
