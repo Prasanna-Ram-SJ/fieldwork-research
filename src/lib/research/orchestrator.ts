@@ -1,6 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { getNebiusConfig } from '@/lib/providers/nebius';
 import { TavilyError } from '@/lib/providers/tavily';
+import { inferenceErrorMessage } from '@/lib/providers/provider-errors';
 import { conductResearch } from './pipeline';
 import { synthesizeReport } from './report-synthesizer';
 import type { ResearchReport } from '@/types/database';
@@ -390,8 +391,9 @@ export async function runResearchOrchestration({
   } catch (err: any) {
     console.error('Research orchestration error:', err);
 
-    const errorMessage = err?.message || 'An unexpected research error occurred.';
-    let errorCode = 'internal_error';
+    const timeoutMessage = err instanceof TavilyError ? undefined : inferenceErrorMessage(err);
+    const errorMessage = timeoutMessage || err?.message || 'An unexpected research error occurred.';
+    let errorCode = timeoutMessage ? 'provider_timeout' : 'internal_error';
 
     if (err instanceof TavilyError) {
       errorCode = err.errorCode;

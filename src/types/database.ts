@@ -101,6 +101,7 @@ export interface QueryPlan {
   temporal_scope?: string;
   geographic_scope?: string;
   strategy_reason?: string;
+  planning_fallback?: boolean;
   focus?: string;
   aspects?: ResearchAspect[];
   format?: 'brief' | 'report';

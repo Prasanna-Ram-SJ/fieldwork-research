@@ -7,6 +7,57 @@ const {loadTs}=require('./helpers/load-ts.cjs');
 function environment(){const names=['GUEST_RESEARCH_ENABLED','MAX_GUEST_REQUESTS_TOTAL','JUDGE_SESSION_SECRET','PROVIDER_REQUESTS_ENABLED','TAVILY_API_KEY'];const old=Object.fromEntries(names.map(k=>[k,process.env[k]]));Object.assign(process.env,{GUEST_RESEARCH_ENABLED:'true',MAX_GUEST_REQUESTS_TOTAL:'20',JUDGE_SESSION_SECRET:'offline-test-secret-'.repeat(3),PROVIDER_REQUESTS_ENABLED:'true',TAVILY_API_KEY:'offline-unused'});return()=>{for(const k of names)old[k]===undefined?delete process.env[k]:process.env[k]=old[k]};}
 function database(){const sqlite=new DatabaseSync(':memory:');sqlite.exec(fs.readFileSync('cloudflare/guest-schema.sql','utf8'));const db={withSession:()=>db,prepare(sql){return{bind(...v){return{async first(){return sqlite.prepare(sql).get(...v)||null},async run(){return{meta:{changes:Number(sqlite.prepare(sql).run(...v).changes)}}}}}}}};return{db,sqlite};}
 
+function timedPlanner(failure) {
+ let calls=0, options;
+ const planner=loadTs('src/lib/research/planner.ts',{'@/lib/providers/nebius':{
+   getNebiusConfig:()=>({model:'offline'}),
+   createNebiusClient:()=>({chat:{completions:{create:async(_body,opts)=>{calls++;options=opts;throw failure;}}}}),
+ }});
+ return {...planner,get calls(){return calls},get options(){return options}};
+}
+
+test('planner 524, timeout and connection failures use the question once without inference retries',async()=>{
+ for(const failure of [{status:524},{name:'APIConnectionTimeoutError'},{name:'APIConnectionError'},{status:503}]){
+  const planner=timedPlanner(failure),question='Can counterfeit power adapters be distinguished using behavioural fingerprints?';
+  const plan=await planner.planResearchQueries(question);
+  assert.deepEqual(plan.queries,[question]);assert.equal(plan.planning_fallback,true);
+  assert.equal(plan.format,'report');assert.equal(plan.focus,question);
+  assert.equal(planner.calls,1);assert.deepEqual(planner.options,{timeout:30000,maxRetries:0});
+  assert.match(plan.strategy_reason,/unavailable/);
+ }
+});
+
+test('planning fallback never bypasses authorization, quotas, refusal or unrelated programming errors',async()=>{
+ for(const failure of [{status:401},{status:403},{status:429},new Error('Guest research preview budget reached'),new TypeError('unexpected')]){
+  const planner=timedPlanner(failure);
+  await assert.rejects(planner.planResearchQueries('question'),error=>error===failure);
+  assert.equal(planner.calls,1);
+ }
+});
+
+test('actual pipeline continues to web search after a 524 and records the planning limitation',async()=>{
+ const planner=timedPlanner({status:524}),events=[],queries=[];
+ const {conductResearch}=loadTs('src/lib/research/pipeline.ts',{
+  './planner':planner,
+  '@/lib/providers/tavily':{searchTavily:async({query})=>{queries.push(query);return{creditsUsed:1,results:[{title:'Adapter study',url:'https://example.org/study',content:'A measured study with methods and limitations.',score:.9}]}}},
+  './source-reader':{readEvidence:async evidence=>evidence.map(e=>({...e,reading:{source_ref:e.source_ref,title:e.title,url:e.original_url,access:'page_text',passages:[{id:'p1',text:e.snippet}]}}))},
+  './coverage':{assessCoverage:async()=>({coverage:[{aspect_id:'a1',status:'partial',source_refs:['S1'],reason:'Limited available evidence'}],query:'',available:true})},
+ });
+ const question='Can counterfeit power adapters be distinguished using behavioural fingerprints?';
+ const result=await conductResearch(question,'',[],(type,payload)=>events.push({type,payload}));
+ assert.deepEqual(queries,[question]);assert.equal(planner.calls,1);assert.equal(result.evidence.length,1);
+ assert.match(result.stopReason,/planning was unavailable/);
+ assert.equal(events.find(e=>e.type==='queries_planned').payload.planning_fallback,true);
+ assert.ok(events.some(e=>e.type==='search_completed'));
+});
+
+test('timeout messages identify the service without blaming the question or exposing upstream response text',()=>{
+ const {inferenceErrorMessage}=loadTs('src/lib/providers/provider-errors.ts');
+ assert.match(inferenceErrorMessage({status:524,message:'private upstream body'}),/provider timed out/);
+ assert.doesNotMatch(inferenceErrorMessage({status:524}),/private upstream body/);
+ assert.equal(inferenceErrorMessage({status:401}),undefined);
+});
+
 test('Nebius SDK uses native fetch and never retries a connection failure',async()=>{
  const restore=environment(),original=global.fetch;let calls=0;
  try {const {createNebiusClient}=loadTs('src/lib/providers/nebius.ts');

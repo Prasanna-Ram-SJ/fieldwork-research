@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { conductResearch } from '@/lib/research/pipeline';
 import { synthesizeReport } from '@/lib/research/report-synthesizer';
 import { getNebiusConfig } from '@/lib/providers/nebius';
+import { inferenceErrorMessage } from '@/lib/providers/provider-errors';
 import type { SSEEventType, SSETraceEvent } from '@/types/research';
 
 export async function runGuestResearch(question:string, recentContext:string, emit:(event:SSETraceEvent)=>Promise<void>) {
@@ -19,7 +20,7 @@ export async function runGuestResearch(question:string, recentContext:string, em
     await send('answer_completed',{assistant_message_id:randomUUID(),answer:synthesis.output,elapsed_ms:Date.now()-start,tavily_credits:result.actualTavilyCredits,tokens:{input:result.inputTokens+synthesis.inputTokens,output:result.outputTokens+synthesis.outputTokens},guest:true});
   } catch(e) {
     const error=e as {message?:string;status?:number};
-    const message=error.message==='Connection error.'?'The AI service could not be reached. No automatic retry was made.':error.message || 'Guest research could not finish.';
+    const message=inferenceErrorMessage(error)||(error.message==='Connection error.'?'The AI service could not be reached. No automatic retry was made.':error.message || 'Guest research could not finish.');
     await send('provider_error',{error_code:'guest_research_failed',message});
   }
 }

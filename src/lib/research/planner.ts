@@ -1,6 +1,7 @@
 import { createNebiusClient, getNebiusConfig } from '@/lib/providers/nebius';
 import { researchCompletionSettings, researchJson } from '@/lib/providers/nebius-research';
 import { QueryPlan } from '@/types/database';
+import { temporaryInferenceFailure } from '@/lib/providers/provider-errors';
 
 export async function planResearchQueries(
   question: string,
@@ -41,7 +42,9 @@ Rules:
     ? `Recent context:\n${recentContext}\n\nCurrent research question:\n${question}`
     : `Research question:\n${question}`;
 
-  const completion = await client.chat.completions.create({
+  let completion;
+  try {
+    completion = await client.chat.completions.create({
     model: config.model,
     messages: [
       { role: 'system', content: systemPrompt },
@@ -50,7 +53,20 @@ Rules:
     temperature: 0.1,
     ...researchCompletionSettings(config.model, 'planning'),
     response_format: { type: 'json_object' },
-  });
+    }, { timeout: 30000, maxRetries: 0 });
+  } catch (error) {
+    if (!temporaryInferenceFailure(error)) throw error;
+    // Planning is optional. Search the user's own question, not a fabricated
+    // model plan. This is not another inference attempt or an answer fallback.
+    const focus = question.trim();
+    return {
+      queries: [focus.slice(0, 140)], focus, format: 'report',
+      aspects: [{ id: 'a1', question: focus.slice(0, 220) }],
+      is_time_sensitive: true, // Do not reuse potentially stale prior readings.
+      planning_fallback: true,
+      strategy_reason: 'AI query planning was temporarily unavailable. Searching your question directly without retrying the model; detailed subquestion planning was not completed.',
+    };
+  }
 
   const parsed: any = researchJson(completion);
   onUsage?.(completion.usage?.prompt_tokens || 0, completion.usage?.completion_tokens || 0);
