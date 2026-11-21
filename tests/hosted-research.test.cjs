@@ -9,7 +9,7 @@ function database(){const sqlite=new DatabaseSync(':memory:');sqlite.exec(fs.rea
 
 function timedPlanner(failure) {
  let calls=0, options;
- const planner=loadTs('src/lib/research/planner.ts',{'@/lib/providers/nebius':{
+ const planner=loadTs('src/lib/research/planner.ts',{'@/lib/providers/research-completion':{completeResearch:(client,body,options)=>client.chat.completions.create(body,options)},'@/lib/providers/nebius':{
    getNebiusConfig:()=>({model:'offline'}),
    createNebiusClient:()=>({chat:{completions:{create:async(_body,opts)=>{calls++;options=opts;throw failure;}}}}),
  }});
@@ -114,7 +114,7 @@ test('an active provider budget denies traffic before native fetch and keeps no 
 });
 test('guest route rejects cross-origin and malformed requests before reserving or running providers',async()=>{
  const restore=environment();let reservations=0,runs=0;try{const {NextRequest}=require('next/server'),a=loadTs('src/lib/guest/access.ts'),session=a.guestSession(undefined,Date.now(),true);
- const {POST}=loadTs('src/app/api/guest/research/route.ts',{'@/lib/providers/nebius':{getNebiusConfig:()=>({model:'offline'})},'@/lib/guest/access':{...a,guestDatabase:async()=>({}),reserveGuest:async()=>{reservations++;return{remaining:2}}},'@/lib/guest/research':{runGuestResearch:async(q,c,emit)=>{runs++;await emit({research_run_id:'offline',sequence:1,timestamp:new Date().toISOString(),type:'answer_completed',payload:{answer:{blocks:[]}}})}}});
+ const {POST}=loadTs('src/app/api/guest/research/route.ts',{'@/lib/providers/research-completion':{completeResearch:(client,body,options)=>client.chat.completions.create(body,options)},'@/lib/providers/nebius':{getNebiusConfig:()=>({model:'offline'})},'@/lib/guest/access':{...a,guestDatabase:async()=>({}),reserveGuest:async()=>{reservations++;return{remaining:2}}},'@/lib/guest/research':{runGuestResearch:async(q,c,emit)=>{runs++;await emit({research_run_id:'offline',sequence:1,timestamp:new Date().toISOString(),type:'answer_completed',payload:{answer:{blocks:[]}}})}}});
  function request(body,origin='https://fieldwork.invalid'){return new NextRequest('https://fieldwork.invalid/api/guest/research',{method:'POST',headers:{origin,'cf-connecting-ip':'192.0.2.1',cookie:a.GUEST_COOKIE+'='+session.token,'Content-Type':'application/json'},body:typeof body==='string'?body:JSON.stringify(body)})}
  assert.equal((await POST(request({question:'What did NASA DART demonstrate?',request_id:randomUUID()},'https://other.invalid'))).status,403);
  assert.equal((await POST(request('{'))).status,400);

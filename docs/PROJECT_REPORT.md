@@ -75,7 +75,7 @@ The example is prepared editorial content, not a recorded live model run. Its pu
 
 ## Validation and remaining limitations
 
-As of November 21, the publication checkout passed **112 offline tests** and TypeScript checks. Coverage includes source and quotation integrity, missing-proof recovery, malformed output, guest-runner completion with mocked model responses, quota concurrency, signed cookies, PDF extraction, citation exports and navigation. The isolated Worker build and deployment secret scan also passed.
+As of November 21, the publication checkout passed **121 offline tests** and TypeScript checks. Coverage includes source and quotation integrity, missing-proof recovery, malformed output, guest-runner completion with mocked model responses, quota concurrency, signed cookies, PDF extraction, citation exports and navigation. The isolated Worker build and deployment secret scan also passed.
 
 Newly authorized hosted checks recorded four complete signed-in research reports with substantive findings, methods and limitations. Additional checks exposed temporary provider-generation failures. The corrected handler preserves exact retrieved evidence and clearly identifies a missing synthesis instead of dropping the evidence or treating a service failure as scientific uncertainty. That recovery passed offline checks and a subsequent live check. The full requested twenty-case validation is still in progress; evidence-only recovery is not counted as a successful full report.
 

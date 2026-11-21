@@ -2,6 +2,7 @@ import { createNebiusClient, getNebiusConfig } from '@/lib/providers/nebius';
 import { researchCompletionSettings, researchJson } from '@/lib/providers/nebius-research';
 import { QueryPlan } from '@/types/database';
 import { temporaryInferenceFailure } from '@/lib/providers/provider-errors';
+import { completeResearch } from '@/lib/providers/research-completion';
 
 export async function planResearchQueries(
   question: string,
@@ -44,7 +45,7 @@ Rules:
 
   let completion;
   try {
-    completion = await client.chat.completions.create({
+    completion = await completeResearch(client, {
     model: config.model,
     messages: [
       { role: 'system', content: systemPrompt },

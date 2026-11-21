@@ -61,7 +61,7 @@ test('report validation rejects invented quotations, wrong passages and citation
   const mismatch=rawReport();mismatch.blocks[0].support[0].source_ref='S2';assert.throws(()=>validateReport(mismatch,evidence()),/citation did not match/);
 });
 test('coverage depends on every planned aspect and rejects invented source IDs', () => {
-  const {validateCoverage} = loadTs('src/lib/research/coverage.ts', {'@/lib/providers/nebius':{}});
+  const {validateCoverage} = loadTs('src/lib/research/coverage.ts', {'@/lib/providers/research-completion':{completeResearch:(client,body,options)=>client.chat.completions.create(body,options)},'@/lib/providers/nebius':{}});
   const plan={queries:['q'],aspects:[{id:'a1',question:'Methods?'},{id:'a2',question:'Long-term outcomes?'}]};
   const result=validateCoverage({coverage:[{aspect_id:'a1',status:'addressed',source_refs:['S1'],reason:'Methods available'},{aspect_id:'a2',status:'missing',source_refs:[],reason:'No follow-up'}],refinement_query:'long term outcomes'},plan,evidence());
   assert.equal(result.query,'long term outcomes');assert.equal(result.coverage[1].status,'missing');
@@ -93,7 +93,7 @@ test('report verification covers source-comparison claims as well as answer para
   const completion = content=>({choices:[{finish_reason:'stop',message:{content:JSON.stringify(content)}}],usage:{prompt_tokens:5,completion_tokens:10}});
   const reports=[completion(rawReport()),completion({approved_indices:[0]})];
   const { synthesizeReport }=loadTs('src/lib/research/report-synthesizer.ts',{
-    '@/lib/providers/nebius':{getNebiusConfig:()=>({model:'offline'}),createNebiusClient:()=>({chat:{completions:{create:async()=>{calls++;return reports.shift();}}}})},
+    '@/lib/providers/research-completion':{completeResearch:(client,body,options)=>client.chat.completions.create(body,options)},'@/lib/providers/nebius':{getNebiusConfig:()=>({model:'offline'}),createNebiusClient:()=>({chat:{completions:{create:async()=>{calls++;return reports.shift();}}}})},
   });
   const result=await synthesizeReport('Question',evidence(),{plan:{aspects:[]},coverage:[],queries:['q'],stopReason:'bounded'});
   assert.equal(result.output.blocks.length,1);assert.equal(result.output.report.source_assessments.length,0);assert.equal(result.output.evidence_status,'limited');assert.match(result.output.uncertainty_note,/omitted/);assert.equal(calls,2);

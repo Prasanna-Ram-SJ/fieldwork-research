@@ -24,7 +24,7 @@ function mockResearch(file, responses) {
   const calls=[];
   const client={chat:{completions:{async create(request){calls.push(request);if(!responses.length)throw new Error('Unexpected extra model request');return responses.shift()}}}};
   return {calls,...load(file,{
-    '@/lib/providers/nebius':{getNebiusConfig:()=>({model:modelSettings.KIMI_RESEARCH_MODEL}),createNebiusClient:()=>client},
+    '@/lib/providers/research-completion':{completeResearch:(client,body,options)=>client.chat.completions.create(body,options)},'@/lib/providers/nebius':{getNebiusConfig:()=>({model:modelSettings.KIMI_RESEARCH_MODEL}),createNebiusClient:()=>client},
     '@/lib/providers/nebius-research':modelSettings,
     '@/lib/providers/provider-errors':load('src/lib/providers/provider-errors.ts'),
     './validate-answer':{validateAnswer},
