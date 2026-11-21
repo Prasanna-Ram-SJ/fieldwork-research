@@ -387,6 +387,7 @@ export async function runResearchOrchestration({
       elapsed_ms: elapsedMs,
       tavily_credits: actualTavilyCredits,
       tokens: nebiusTokens,
+      token_usage_complete: synthesisResult.usageComplete,
     });
   } catch (err: any) {
     console.error('Research orchestration error:', err);

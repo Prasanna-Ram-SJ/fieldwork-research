@@ -53,6 +53,21 @@ test('an explicit model refusal is not bypassed by evidence recovery',async()=>{
  const h=harness([{choices:[{finish_reason:'stop',message:{content:null,refusal:'Offline explicit refusal'}}]}]);await assert.rejects(h.run(),/could not provide a research draft/);assert.equal(h.requests.length,1);
 });
 
+test('temporary initial generation failures preserve inspectable evidence without another provider call',async()=>{
+ for(const failure of [Object.assign(new Error('Offline 524'),{status:524}),Object.assign(new Error('Offline timeout'),{name:'APIConnectionTimeoutError'})]){
+  const h=harness([failure]);const result=await h.run();assert.equal(h.requests.length,1);
+  assert.equal(result.output.evidence_status,'insufficient');assert.equal(result.usageComplete,false);
+  assert.match(result.output.uncertainty_note,/service failure is not a scientific finding/);
+  assert.ok(result.output.blocks.some(b=>b.support?.some(s=>text.includes(s.quote))));assertStrict(result);
+ }
+});
+
+test('generation authorization and quota denials remain errors instead of masquerading as a report',async()=>{
+ for(const status of [401,403,429]){
+  const h=harness([Object.assign(new Error('Offline denied'),{status})]);await assert.rejects(h.run(),/Offline denied/);assert.equal(h.requests.length,1);
+ }
+});
+
 test('an evidence-only result preserves six substantial exact excerpts and separate fixed research notes',()=>{
  const {retainVerifiedDraft}=loadTs('src/lib/research/verified-draft.ts');
  const {validateReport}=loadTs('src/lib/research/validate-report.ts');
