@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { GUEST_COOKIE, GuestError, guestSession, guestIdentity, guestDatabase, reserveGuest, reserveGuestProvider } from '@/lib/guest/access';
+import { GUEST_COOKIE, GuestError, guestSession, guestIdentity, guestDatabase, reserveGuest, reserveGuestProvider, settleGuestProvider } from '@/lib/guest/access';
 import { withProviderBudget } from '@/lib/providers/request-budget';
 import { runGuestResearch } from '@/lib/guest/research';
 import { researchStream } from '@/lib/research/stream';
@@ -26,7 +26,7 @@ export async function POST(request:NextRequest){
     const identity=guestIdentity(session.id,request.headers.get('cf-connecting-ip') || (process.env.NODE_ENV==='development'?'127.0.0.1':null));
     const db=await guestDatabase();
     const allowance=await reserveGuest(db,identity,body.request_id);
-    const response=researchStream(emit=>withProviderBudget(reservation=>reserveGuestProvider(db,body.request_id,reservation),()=>runGuestResearch(question,context,emit)));
+    const response=researchStream(emit=>withProviderBudget(reservation=>reserveGuestProvider(db,body.request_id,reservation),()=>runGuestResearch(question,context,emit),(reservation,usage)=>settleGuestProvider(db,body.request_id,reservation,usage)));
     response.headers.set('X-Guest-Remaining',String(allowance.remaining));
     return response;
   } catch(e){return NextResponse.json({error:e instanceof GuestError?e.message:'Guest research could not start. No automatic retry was made.'},{status:e instanceof GuestError?e.status:503,headers:{'Cache-Control':'no-store'}});}

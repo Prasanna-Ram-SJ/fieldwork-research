@@ -12,7 +12,7 @@ function load(file, mocks = {}, extra = "") {
   m.filename = filename;
   m.paths = module.paths;
   const normal = m.require.bind(m);
-  m.require = (name) => name === '@/lib/research/clarify' ? require('./helpers/load-ts.cjs').loadTs('src/lib/research/clarify.ts') :
+  m.require = (name) => name === '@/lib/research/response-events' ? require('./helpers/load-ts.cjs').loadTs('src/lib/research/response-events.ts') : name === '@/lib/research/clarify' ? require('./helpers/load-ts.cjs').loadTs('src/lib/research/clarify.ts') :
     Object.hasOwn(mocks, name) ? mocks[name] : normal(name);
   const code = ts.transpileModule(fs.readFileSync(filename, "utf8"), {
     compilerOptions: {
@@ -267,3 +267,17 @@ test('an infrastructure HTML error preserves the guest question and is never ret
  try {const c=controller(true);c.render().setDraft('What did NASA DART demonstrate?');await c.render().execute();const result=c.render();assert.match(result.error,/temporarily unavailable \(HTTP 503\)/);assert.equal(result.draft,'What did NASA DART demonstrate?');assert.equal(submits,1);assert.equal(result.busy,false);}
  finally{global.fetch=originalFetch;originalStorage===undefined?delete global.sessionStorage:global.sessionStorage=originalStorage;}
 });
+
+test('a hosted guest queued response reaches the same Workspace answer without creating an account',async()=>{
+ const oldFetch=global.fetch,oldStorage=global.sessionStorage;let posts=0,reads=0;
+ global.sessionStorage={removeItem(){},getItem(){return null},setItem(){}};
+ global.fetch=async(url,init)=>{
+  if(url==='/api/guest/session')return Response.json({enabled:true,remaining:10,daily_limit:10,pool_remaining:90});
+  if(url==='/api/guest/research'){posts++;assert.equal(init.method,'POST');return Response.json({job_id:'a'.repeat(36),poll_url:'/api/guest/research/jobs/'+('a'.repeat(36))},{status:202});}
+  assert.ok(url.startsWith('/api/guest/research/jobs/'));reads++;return Response.json({status:'completed',entries:[{cursor:1,event:{research_run_id:'guest-job',sequence:1,timestamp:new Date().toISOString(),type:'answer_completed',payload:{assistant_message_id:'offline-answer',answer:{blocks:[{text:'A queued offline answer.',claim_type:'background',source_refs:[]}],evidence_status:'limited'}}}}]});
+ };
+ try{const c=controller(true);c.render().setDraft('What did NASA DART demonstrate?');await c.render().execute();assert.equal(posts,1);assert.equal(reads,1);assert.equal(c.render().messages.filter(m=>m.role==='assistant').length,1);assert.equal(c.render().error,'');assert.equal(c.render().busy,false);assert.equal(c.render().user,null);}
+ finally{global.fetch=oldFetch;oldStorage===undefined?delete global.sessionStorage:global.sessionStorage=oldStorage;}
+});
+
+test('configuration loading is not reported as an owner pause and cannot submit research',async()=>{const oldFetch=global.fetch,oldStorage=global.sessionStorage;let posts=0;global.fetch=async()=>{posts++;throw Error('No request allowed while status is loading')};global.sessionStorage={removeItem(){},getItem(){return null},setItem(){}};try{const c=controller();c.render().setDraft('What did NASA DART demonstrate?');await c.render().execute();assert.equal(posts,0);assert.match(c.render().error,/connection check is still loading/);assert.ok(!c.render().error.includes('protect your credits'));}finally{global.fetch=oldFetch;oldStorage===undefined?delete global.sessionStorage:global.sessionStorage=oldStorage;}});

@@ -1,4 +1,5 @@
 "use client";
+import { researchResponseEvents } from '@/lib/research/response-events';
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/browser";
@@ -14,7 +15,7 @@ type Status = {
   nebius: boolean;
   tavily: boolean;
   model: boolean;
-  research_enabled: boolean;
+  research_enabled: boolean | null;
 };
 const configured = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL &&
@@ -33,7 +34,7 @@ function useResearchState() {
     nebius: false,
     tavily: false,
     model: false,
-    research_enabled: false,
+    research_enabled: null,
   });
   const [draft, setDraft] = useState(""),
     [id, setId] = useState<string | null>(null);
@@ -246,6 +247,10 @@ function useResearchState() {
       setError('Your account is still loading. Please try again in a moment.');
       return;
     }
+    if (status.research_enabled === null) {
+      setError('The connection check is still loading. Please wait a moment.');
+      return;
+    }
     if (!status.research_enabled) {
       setError(
         "Live research is paused to protect your credits. No provider request was made. You can still explore the example brief.",
@@ -309,7 +314,7 @@ function useResearchState() {
       const r = await fetch(isGuest?"/api/guest/research":"/api/research", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ conversation_id: conversationId, question, scope_confirmed: scopeConfirmed, ...(isGuest?{request_id:crypto.randomUUID(),recent_context:recentContext}:{}) }),
+        body: JSON.stringify({ conversation_id: conversationId, question, scope_confirmed: scopeConfirmed, request_id:crypto.randomUUID(), ...(isGuest?{recent_context:recentContext}:{}) }),
         signal: controller.current.signal,
       });
       if (!r.ok) {
@@ -318,21 +323,7 @@ function useResearchState() {
         catch { throw Error(`The research service is temporarily unavailable (HTTP ${r.status}). No automatic retry was made.`); }
         throw Error(d.error || "Research could not start.");
       }
-      if(!r.headers.get('Content-Type')?.includes('text/event-stream'))throw Error('The research service returned an unexpected response. No automatic retry was made.');
-      if (!r.body) throw Error("The research stream was unavailable.");
-      const reader = r.body.getReader(),
-        decoder = new TextDecoder();
-      let buffer = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        buffer += decoder.decode(value, { stream: !done });
-        let boundary;
-        while ((boundary = buffer.indexOf("\n\n")) >= 0) {
-          const frame = buffer.slice(0, boundary);
-          buffer = buffer.slice(boundary + 2);
-          const line = frame.split("\n").find((l) => l.startsWith("data: "));
-          if (!line) continue;
-          const ev: SSETraceEvent = JSON.parse(line.slice(6));
+      for await (const ev of researchResponseEvents(r, controller.current.signal)) {
           setEvents((p) => [...p, ev]);
           if (ev.type === "evidence_selected")
             setSources((p) => [
@@ -372,8 +363,6 @@ function useResearchState() {
             );
             setDraft(question);
           }
-        }
-        if (done) break;
       }
       if (!terminal)
         throw Error(

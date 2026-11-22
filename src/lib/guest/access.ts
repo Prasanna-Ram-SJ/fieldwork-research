@@ -72,3 +72,15 @@ export async function reserveGuestProvider(db:LedgerDatabase,requestId:string,re
     .bind(amount,JSON.stringify(reservation),requestId,amount).run();
   if(result.meta.changes!==1)throw new GuestError('This question reached the guest research budget. No further provider request was made. Please ask a narrower question.',429);
 }
+
+/** Replace one completed call's pessimistic exposure with its reported usage,
+ * at the same doubled model rates. Unknown/failed calls are never refunded. */
+export async function settleGuestProvider(db:LedgerDatabase,requestId:string,reservation:ProviderReservation,usage:{input:number;output:number}){
+  if(reservation.provider!=='nebius'||!reservation.id)return;
+  const amount=(usage.input*4+usage.output*20)/1e6;
+  if(!Number.isFinite(amount)||amount<0||amount>reservation.reservedUSD)throw Error('Invalid provider usage reconciliation.');
+  const row=await db.prepare("SELECT CAST(j.key AS INTEGER) AS position, json_extract(j.value,'$.reservedUSD') AS held FROM guest_research_reservations r, json_each(r.cost_events) j WHERE r.request_id=? AND json_extract(j.value,'$.id')=? AND json_extract(j.value,'$.settled') IS NULL LIMIT 1").bind(requestId,reservation.id).first<{position:number;held:number}>();
+  if(!row||row.held!==reservation.reservedUSD||!Number.isSafeInteger(row.position))return;
+  const base=`$[${row.position}]`;
+  await db.prepare("UPDATE guest_research_reservations SET reserved_usd=ROUND(reserved_usd-?+?,6), cost_events=json_set(cost_events,?,1,?,?,?, ?,?,?) WHERE request_id=? AND json_extract(cost_events,?) IS NULL").bind(row.held,amount,base+'.settled',base+'.actualUSD',amount,base+'.inputTokens',usage.input,base+'.outputTokens',usage.output,requestId,base+'.settled').run();
+}

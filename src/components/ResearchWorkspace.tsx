@@ -826,7 +826,7 @@ export function Workspace({ initialId }: { initialId?: string }) {
                   <button
                     className="submit-question"
                     aria-label={r.busy ? "Researching" : "Research question"}
-                    disabled={r.busy || r.loading || !r.draft.trim()}
+                    disabled={r.busy || r.loading || !r.authReady || r.status.research_enabled === null || !r.draft.trim()}
                   >
                     {r.busy ? (
                       <Loader2 className="spin" size={19} />
