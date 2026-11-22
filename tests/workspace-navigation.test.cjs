@@ -246,8 +246,11 @@ test("the navbar Workspace action starts fresh while modified clicks remain link
   assert.equal(prevented, false);
   assert.equal(resets(), 1);
 });
-test("the navbar marks a fresh workspace unavailable during a running research task", () => {
-  assert.equal(workspaceLink(true).link.props["aria-disabled"], true);
+test("the navbar remains available to resume a running research task", () => {
+  const {link,resets}=workspaceLink(true);
+  assert.equal(link.props['aria-disabled'],undefined);
+  link.props.onClick({preventDefault(){}});
+  assert.equal(resets(),1);
 });
 
 test('a signed-out user submits a real guest question without an OAuth redirect or account writes',async()=>{
@@ -281,3 +284,36 @@ test('a hosted guest queued response reaches the same Workspace answer without c
 });
 
 test('configuration loading is not reported as an owner pause and cannot submit research',async()=>{const oldFetch=global.fetch,oldStorage=global.sessionStorage;let posts=0;global.fetch=async()=>{posts++;throw Error('No request allowed while status is loading')};global.sessionStorage={removeItem(){},getItem(){return null},setItem(){}};try{const c=controller();c.render().setDraft('What did NASA DART demonstrate?');await c.render().execute();assert.equal(posts,0);assert.match(c.render().error,/connection check is still loading/);assert.ok(!c.render().error.includes('protect your credits'));}finally{global.fetch=oldFetch;oldStorage===undefined?delete global.sessionStorage:global.sessionStorage=oldStorage;}});
+
+test('running research resumes from Workspace while saved conversations stay isolated from its completion',async()=>{
+ const oldFetch=global.fetch,oldStorage=global.sessionStorage,completion=deferred();let posts=0;
+ global.sessionStorage={removeItem(){},getItem(){return null},setItem(){}};
+ global.fetch=async(url)=>{
+  if(url==='/api/guest/session')return Response.json({enabled:true,remaining:10});
+  if(url==='/api/guest/research'){posts++;return completion.promise;}
+  assert.equal(url,'/api/conversations/other');return fixture('other');
+ };
+ try{
+  const c=controller(true);c.render().setDraft('What did NASA DART demonstrate?');const work=c.render().execute();
+  await new Promise(r=>setImmediate(r));assert.equal(c.render().busy,true);
+  await c.render().openSaved('other');assert.equal(c.render().busy,false);assert.equal(c.render().running,true);assert.equal(c.render().id,'other');
+  c.render().reset();assert.equal(c.routes.at(-1),'/workspace');assert.equal(c.render().busy,true);assert.equal(c.render().messages[0].content.text,'What did NASA DART demonstrate?');assert.equal(posts,1);
+  await c.render().openSaved('other');
+  const event={research_run_id:'offline-run',sequence:1,timestamp:new Date().toISOString(),type:'answer_completed',payload:{assistant_message_id:'finished',answer:{blocks:[{text:'Finished active research',source_refs:[]}]}}};
+  completion.resolve(new Response('data: '+JSON.stringify(event)+'\n\n',{headers:{'Content-Type':'text/event-stream'}}));await work;
+  assert.equal(c.render().id,'other');assert.equal(c.render().messages[0].id,'message-other');assert.equal(c.render().messages.length,1);assert.equal(c.render().running,false);assert.equal(c.render().error,'');assert.equal(posts,1);
+  c.render().reset();assert.equal(c.render().id,null);assert.deepEqual(c.render().messages,[]);
+ }finally{global.fetch=oldFetch;oldStorage===undefined?delete global.sessionStorage:global.sessionStorage=oldStorage;}
+});
+
+test('resuming research invalidates an older in-flight saved conversation response',async()=>{
+ const oldFetch=global.fetch,oldStorage=global.sessionStorage,completion=deferred(),saved=deferred();
+ global.sessionStorage={removeItem(){},getItem(){return null},setItem(){}};
+ global.fetch=async url=>url==='/api/guest/session'?Response.json({enabled:true,remaining:10}):url==='/api/guest/research'?completion.promise:saved.promise;
+ try{
+  const c=controller(true);c.render().setDraft('What did NASA DART demonstrate?');const work=c.render().execute();await new Promise(r=>setImmediate(r));
+  const opening=c.render().openSaved('slow');c.render().reset();saved.resolve(fixture('slow'));await opening;
+  assert.equal(c.render().id,null);assert.equal(c.render().busy,true);assert.equal(c.render().loading,false);assert.equal(c.render().messages[0].content.text,'What did NASA DART demonstrate?');
+  completion.resolve(new Response('data: '+JSON.stringify({type:'provider_error',payload:{message:'Offline failure'}})+'\n\n',{headers:{'Content-Type':'text/event-stream'}}));await work;assert.equal(c.render().error,'Offline failure');
+ }finally{global.fetch=oldFetch;oldStorage===undefined?delete global.sessionStorage:global.sessionStorage=oldStorage;}
+});

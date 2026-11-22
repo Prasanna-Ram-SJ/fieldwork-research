@@ -2,7 +2,7 @@
 
 Checked November 22, 2026. Offline tests, actual provider calls and pending demonstration are distinguished below.
 
-- **148 offline tests pass:** quotation/source integrity, missing-proof recovery, independently malformed items, actual guest-runner completion with mocked model responses, fabricated-proof rejection, durable quota concurrency, cookies, auth/navigation, PDF parsing, citation exports, interrupted background-job handling and incomplete provider-usage disclosure.
+- **150 offline tests pass:** quotation/source integrity, missing-proof recovery, independently malformed items, actual guest-runner completion with mocked model responses, fabricated-proof rejection, durable quota concurrency, cookies, auth/navigation, PDF parsing, citation exports, interrupted background-job handling and incomplete provider-usage disclosure.
 - TypeScript and the isolated Worker build passed for the deployed source. Build output was scanned for embedded provider/session secrets. The public status endpoint returned HTTP 200 with runtime configuration present.
 - The twenty planned browser attempts are now accounted for: ten guest and ten signed-in. Thirteen returned synthesized reports, three returned labeled evidence-only recoveries, and four earlier attempts failed. This is not twenty passing tests. The nine latest runs on the repaired Object runner returned full reports with matching quotations and opened citations; all four newly completed account reports also restored from saved history.
 - These new live checks use a separate, explicitly authorized bounded test budget. Incomplete provider usage reports retain conservative spending reservations. Previous development-test budgets stay sealed.
@@ -52,3 +52,13 @@ A successful final synthesis no longer labels billing data complete if planning 
 
 Cloudflare's read-only metrics query reported no `exceededResources` invocations from the final runner deployment through the end of this batch. All 148 offline tests passed, along with TypeScript/build checks and deployment secret scans. Research latency remains variable: the longest of these cases took approximately 6.5 minutes. Provider availability, source selection, interpretation errors and shared quotas can still affect future questions. The bounded batch is closed; there is no automatic retest or open-ended paid validation.
 
+
+## Responsive layout and conversation navigation repair — November 22
+
+The About guide's fixed-height story rows could overflow their grid at intermediate viewport sizes. It now measures the available space, balances row heights and uses the existing compact or pocket copy only when necessary. The full newspaper edition remains at sizes where it fits; all six workflow steps remain on a single screen. Browser checks covered 176 viewport combinations, including short landscape screens, and the original failing tablet/phone sizes were visually inspected.
+
+Workspace previously forced the answer to the bottom on every progress event. Automatic following now respects an outline jump or scrolling back to an older answer. Both an in-progress follow-up and a completed two-answer outline stayed at the selected earlier section in the mocked browser checks.
+
+The navbar previously blocked Workspace during research, while saved-chat loading waited for the running task. Running research now owns its own state snapshot. Workspace returns to that task while it is active; another saved conversation can open immediately and cannot receive its events or answer. When no task is running, Workspace still starts fresh. Submission remains limited to one running task. A delayed conversation-creation response also cannot redirect the user away from a different Library chat.
+
+Two new state-race regression tests bring the Node suite to 150 passing tests. A browser fixture exercised the real React components with mocked authentication, routing and research responses, including background completion while another chat was open. External networking was blocked and no Tavily/Nebius calls were made. The previously sealed paid validation budget and all usage counts were preserved.

@@ -75,7 +75,7 @@ The example is prepared editorial content, not a recorded live model run. Its pu
 
 ## Validation and remaining limitations
 
-As of November 22, the publication checkout passed **148 offline tests** and TypeScript checks. Coverage includes source and quotation integrity, missing-proof recovery, malformed output, guest-runner completion with mocked model responses, quota concurrency, signed cookies, PDF extraction, citation exports, navigation, interrupted background jobs and partial usage reporting. The isolated Worker build and deployment secret scan also passed.
+As of November 22, the publication checkout passed **150 offline tests** and TypeScript checks. Coverage includes source and quotation integrity, missing-proof recovery, malformed output, guest-runner completion with mocked model responses, quota concurrency, signed cookies, PDF extraction, citation exports, navigation, interrupted background jobs and partial usage reporting. The isolated Worker build and deployment secret scan also passed.
 
 The requested twenty browser attempts are accounted for: ten guest and ten signed-in. Thirteen returned synthesized reports, three returned labeled evidence-only recoveries, and four earlier attempts failed; this is not a twenty-case pass. The handler preserves retrieved evidence during temporary synthesis failures and distinguishes a missing AI conclusion from scientific uncertainty. The complete outcomes and limitations are recorded in [validation](VALIDATION.md).
 

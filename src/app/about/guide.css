@@ -175,3 +175,21 @@
  .guide-stories article:nth-child(5), .guide-stories article:nth-child(6) { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.4fr); gap:12px; padding-block:6px; }
 }
 
+/* Give rows their content height before selecting an existing shorter edition. */
+.workflow-paper[data-fit]:not([data-fit="default"]) .guide-stories { grid-template-rows:none; grid-auto-rows:minmax(min-content,1fr); }
+.workflow-paper:is([data-fit="compact"],[data-fit="pocket"],[data-fit="minimal"]) .guide-full,
+.workflow-paper:is([data-fit="compact"],[data-fit="pocket"],[data-fit="minimal"]) .guide-title { display:none; }
+.workflow-paper:is([data-fit="compact"],[data-fit="pocket"],[data-fit="minimal"]) .guide-short-title { display:inline; }
+.workflow-paper[data-fit="compact"] .guide-compact { display:block; }
+.workflow-paper[data-fit="compact"] .guide-pocket { display:none; }
+.workflow-paper:is([data-fit="pocket"],[data-fit="minimal"]) .guide-compact { display:none; }
+.workflow-paper:is([data-fit="pocket"],[data-fit="minimal"]) .guide-pocket { display:block; }
+.workflow-paper[data-fit="minimal"] :is(.guide-headline,.guide-route,.guide-phone-note) { display:none; }
+@media (min-width:480px) and (max-width:650px) and (max-height:430px) {
+ .workflow-guide { padding-top:76px; }
+ .workflow-paper[data-fit="minimal"] .guide-stories { grid-template-columns:repeat(3,minmax(0,1fr)); }
+ .workflow-paper[data-fit="minimal"] .guide-stories article:nth-child(n) { display:block; padding:2px 6px; border-right:1px solid var(--rule); }
+ .workflow-paper[data-fit="minimal"] .guide-stories article:nth-child(-n+3) { border-top:0; }
+ .workflow-paper[data-fit="minimal"] .guide-stories article:nth-child(3n) { border-right:0; }
+ .workflow-paper[data-fit="minimal"] .guide-footer > span { display:none; }
+}

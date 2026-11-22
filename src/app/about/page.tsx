@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { WorkflowPaper } from '@/components/WorkflowPaper';
 import "./guide.css";
 
 export const metadata: Metadata = {
@@ -54,7 +55,7 @@ const pocketStories = [
 export default function About() {
   return (
     <main id="main-content" className="workflow-guide" tabIndex={-1}>
-      <div className="workflow-paper">
+      <WorkflowPaper>
         <header className="guide-masthead">
           <span className="guide-ear">A practical guide<br />to the research desk</span>
           <h1>The Fieldwork Guide</h1>
@@ -101,7 +102,7 @@ export default function About() {
           <span>Citations point to evidence. Check the original before relying on a claim.</span>
           <Link href="/workspace">Open Workspace <ArrowUpRight size={15} aria-hidden="true" /></Link>
         </footer>
-      </div>
+      </WorkflowPaper>
     </main>
   );
 }

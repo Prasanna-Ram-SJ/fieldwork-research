@@ -123,7 +123,7 @@ export function LibraryPage() {
                     className="icon-button"
                     aria-label={"Delete " + s.title}
                     onClick={() => r.setRemove(s.id)}
-                    disabled={r.busy}
+                    disabled={r.running || r.busy}
                   >
                     <Trash2 size={16} />
                   </button>

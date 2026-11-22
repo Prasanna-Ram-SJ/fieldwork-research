@@ -445,6 +445,8 @@ export function Workspace({ initialId }: { initialId?: string }) {
   const r = useResearch(),
     scroller = useRef<HTMLDivElement>(null),
     loadedRoute = useRef<string | null>(null),
+    followTail = useRef(true),
+    wasBusy = useRef(false),
     [drawer, setDrawer] = useState<"details" | "outline" | null>(null);
   const dictation = useDictation((text) => {
     r.setDraft(text);
@@ -459,11 +461,11 @@ export function Workspace({ initialId }: { initialId?: string }) {
       loadedRoute.current = null;
       return;
     }
-    if (r.user && !r.busy && loadedRoute.current !== initialId) {
+    if (r.user && loadedRoute.current !== initialId) {
       loadedRoute.current = initialId;
       if (initialId !== r.id) void r.openSaved(initialId);
     }
-  }, [initialId, r.user, r.busy]);
+  }, [initialId, r.user, r.id]);
   const turns = useMemo(
     () =>
       r.example
@@ -519,11 +521,17 @@ export function Workspace({ initialId }: { initialId?: string }) {
     [turns],
   );
   useEffect(() => {
-    if (r.busy)
-      scroller.current?.scrollTo({
-        top: scroller.current.scrollHeight,
-        behavior: "smooth",
-      });
+    const sc = scroller.current;
+    if (!sc) return;
+    const track = () => { followTail.current = sc.scrollHeight - sc.clientHeight - sc.scrollTop < 64; };
+    sc.addEventListener('scroll', track, {passive: true});
+    return () => sc.removeEventListener('scroll', track);
+  }, []);
+  useEffect(() => {
+    // Follow a new question once, then respect readers navigating older answers.
+    if (r.busy && (!wasBusy.current || followTail.current))
+      scroller.current?.scrollTo({top: scroller.current.scrollHeight, behavior: 'instant'});
+    wasBusy.current = r.busy;
   }, [r.busy, r.events.length]);
   const last = r.messages.at(-1),
     pending = last?.role === "user" ? (last.content as UserContent).text : null;
@@ -552,7 +560,7 @@ export function Workspace({ initialId }: { initialId?: string }) {
           >
             <ListTree size={17} />
           </button>
-          <button className="text-button" onClick={r.reset} disabled={r.busy}>
+          <button className="text-button" onClick={r.reset} disabled={r.running || r.busy}>
             <Plus size={16} /> New research
           </button>
         </div>
@@ -756,7 +764,7 @@ export function Workspace({ initialId }: { initialId?: string }) {
                 rows={2}
                 maxLength={1000}
                 value={r.draft}
-                disabled={r.busy}
+                disabled={r.running || r.busy}
                 placeholder={
                   turns.length
                     ? "Ask a follow-up question…"
@@ -780,7 +788,7 @@ export function Workspace({ initialId }: { initialId?: string }) {
               />
               <div className="composer-bottom">
                 <span>
-                  {r.busy
+                  {r.running || r.busy
                     ? "Research in progress"
                     : r.user
                       ? "Research · up to 3 searches"
@@ -813,7 +821,7 @@ export function Workspace({ initialId }: { initialId?: string }) {
                     aria-describedby="dictation-info"
                     title="Voice typing uses your browser’s speech service; audio may be processed online."
                     disabled={
-                      r.busy || r.loading || dictation.supported === null
+                      r.running || r.busy || r.loading || dictation.supported === null
                     }
                     onClick={() => dictation.toggle(r.draft)}
                   >
@@ -826,7 +834,7 @@ export function Workspace({ initialId }: { initialId?: string }) {
                   <button
                     className="submit-question"
                     aria-label={r.busy ? "Researching" : "Research question"}
-                    disabled={r.busy || r.loading || !r.authReady || r.status.research_enabled === null || !r.draft.trim()}
+                    disabled={r.running || r.busy || r.loading || !r.authReady || r.status.research_enabled === null || !r.draft.trim()}
                   >
                     {r.busy ? (
                       <Loader2 className="spin" size={19} />
@@ -861,7 +869,7 @@ export function Workspace({ initialId }: { initialId?: string }) {
           </div>
         </section>
         <aside className="outline-rail">
-          <ScrollProgressOutline scroller={scroller} sections={sections} />
+          <ScrollProgressOutline scroller={scroller} sections={sections} onNavigate={() => {followTail.current = false;}} />
         </aside>
       </div>
       <PanelDialog
@@ -875,7 +883,7 @@ export function Workspace({ initialId }: { initialId?: string }) {
           <ScrollProgressOutline
             scroller={scroller}
             sections={sections}
-            onNavigate={() => setDrawer(null)}
+            onNavigate={() => { followTail.current = false; setDrawer(null); }}
           />
         ) : null}
       </PanelDialog>

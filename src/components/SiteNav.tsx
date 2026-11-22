@@ -48,7 +48,6 @@ export function SiteNav() {
                   ? "page"
                   : undefined
               }
-              aria-disabled={url === "/workspace" && r.busy ? true : undefined}
               onClick={(event) => {
                 setOpen(false);
                 if (
@@ -71,7 +70,7 @@ export function SiteNav() {
           ) : r.user ? (
             <button
               className="nav-account"
-              disabled={r.busy}
+              disabled={r.running || r.busy}
               onClick={() => {
                 setOpen(false);
                 void r.signOut();
