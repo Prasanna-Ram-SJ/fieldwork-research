@@ -4,7 +4,7 @@ Checked November 22, 2026. Offline tests, actual provider calls and pending demo
 
 - **148 offline tests pass:** quotation/source integrity, missing-proof recovery, independently malformed items, actual guest-runner completion with mocked model responses, fabricated-proof rejection, durable quota concurrency, cookies, auth/navigation, PDF parsing, citation exports, interrupted background-job handling and incomplete provider-usage disclosure.
 - TypeScript and the isolated Worker build passed for the deployed source. Build output was scanned for embedded provider/session secrets. The public status endpoint returned HTTP 200 with runtime configuration present.
-- Newly authorized hosted checks recorded four successful signed-in reports with 6–9 substantive paragraphs, methods and limitations. A later generation timeout exposed a failure path; temporary synthesis failures now preserve exact retrieved evidence with a clear service-failure notice and no retry. This recovery was checked both offline and in a subsequent live run. An evidence-only recovery is not a successful full synthesis. The requested twenty-case validation is still in progress.
+- The twenty planned browser attempts are now accounted for: ten guest and ten signed-in. Thirteen returned synthesized reports, three returned labeled evidence-only recoveries, and four earlier attempts failed. This is not twenty passing tests. The nine latest runs on the repaired Object runner returned full reports with matching quotations and opened citations; all four newly completed account reports also restored from saved history.
 - These new live checks use a separate, explicitly authorized bounded test budget. Incomplete provider usage reports retain conservative spending reservations. Previous development-test budgets stay sealed.
 - Prepared examples are editorial, clearly labeled, and cannot substitute for a real demonstration. The owner supplied a demo-video link and reported completing the organizer submission.
 
@@ -22,13 +22,33 @@ One separately authorized Nebius-only transport diagnostic completed eight struc
 
 A guest browser run exposed Cloudflare runtime resource termination during synthesis. Moving admission and progress polling out of Next's heavy request path was insufficient by itself: a later queue invocation was also terminated. The queue now delegates each job to a SQLite-backed Durable Object, with a separate active-CPU allowance. Its caller records a terminal error if the Object fails, without rerunning inference or refunding uncertain provider exposure. Temporary authorization is cleared. Queue delivery and the durable claim still prevent duplicate paid execution.
 
-Both local workerd protocol tests passed with mocked providers and external requests blocked, including the actual Durable Object boundary and a simulated interruption. A deployed dispatch canary with a nonexistent job ID passed without provider work. These checks do not substitute for the ongoing real guest questions; twenty-case validation remains incomplete.
+Both local workerd protocol tests passed with mocked providers and external requests blocked, including the actual Durable Object boundary and a simulated interruption. A deployed dispatch canary with a nonexistent job ID passed without provider work. Subsequent live browser results are recorded below; offline and canary checks alone do not establish real research success.
 
 The first two subsequent guest browser questions completed full reports: AI-text detector reliability (eight paragraphs, 667 words, 124 seconds) and electric/gasoline vehicle life-cycle emissions (nine paragraphs, 843 words, 79 seconds). Both retained qualified conclusions despite limited evidence, passed exact quotation checks and opened a cited passage. All five model stages in each run reported usage. These are specific observed results, not a guarantee that every future question will complete or that every retrieved source is equally strong.
 
 Three more guest questions subsequently completed: microplastics measurement differences (eight paragraphs, 737 words, 48 seconds), online/in-person learning evidence (seven paragraphs, 628 words, 72 seconds), and recycled-packaging migration (nine paragraphs, 859 words, 71 seconds). All completed with reported usage and inspectable matching quotations. Manual review of the packaging report nevertheless found a substantive ambiguity: a toxicity level from one extracted sentence was combined with a nearby PDF table heading into a classification the passage did not clearly establish. Drafting and review instructions now explicitly reject such joins; this is a guardrail, not proof the revised model will never make that error.
 
-All ten planned guest attempts are accounted for, including earlier failures and evidence-only outcomes; they are not all counted as successful reports. Signed-in testing resumed in a separate manually authenticated profile. A campus food-waste question returned eight supported paragraphs (715 words) and restored correctly from account history. One coverage stage reached its earlier 30-second deadline, so the complete report correctly disclosed incomplete token usage. Coverage now has a finite 90-second single-attempt deadline; there is no retry. Three additional signed-in cases remain in progress or pending.
+All ten planned guest attempts are accounted for, including earlier failures and evidence-only outcomes; they are not all counted as successful reports. Signed-in testing resumed in a separate manually authenticated profile. A campus food-waste question returned eight supported paragraphs (715 words) and restored correctly from account history. One coverage stage reached its earlier 30-second deadline, so the complete report correctly disclosed incomplete token usage. Coverage now has a finite 90-second single-attempt deadline; there is no retry. The final three signed-in cases subsequently completed and restored from history.
 
 A successful final synthesis no longer labels billing data complete if planning or coverage lacked a usage report. Unknown failed-call costs retain their conservative reservations. Read-only reopens of three earlier account reports restored their paragraphs and opened cited passages without any new research submission.
+
+## Final results on the repaired runner
+
+“Full report” means generated research paragraphs were retained after evidence checks; it is not a guarantee of scientific correctness. Paragraphs lacking acceptable support were omitted, which explains the shorter thermal-storage report. None of the earlier failed questions was replayed to replace its outcome.
+
+| Mode | Topic | Paragraphs | Words | Seconds |
+| --- | --- | ---: | ---: | ---: |
+| Guest | AI-text detector reliability | 8 | 667 | 124 |
+| Guest | Vehicle life-cycle emissions | 9 | 843 | 79 |
+| Guest | Microplastics measurement differences | 8 | 737 | 48 |
+| Guest | Online and in-person learning | 7 | 628 | 72 |
+| Guest | Recycled-packaging migration* | 9 | 859 | 71 |
+| Account | Campus food-waste interventions | 8 | 715 | 221 |
+| Account | Thermal-energy storage | 5 | 449 | 261 |
+| Account | Battery-charging habits | 9 | 806 | 268 |
+| Account | ML benchmark reproducibility | 9 | 832 | 391 |
+
+*The packaging report had the PDF-table classification ambiguity described above. Exact quotation matching did not catch that semantic issue. The last benchmark report completed despite an unavailable coverage assessment; its partial usage flag remained false and conservative unknown-cost exposure was retained. These are recorded limitations, not hidden passing results.
+
+Cloudflare's read-only metrics query reported no `exceededResources` invocations from the final runner deployment through the end of this batch. All 148 offline tests passed, along with TypeScript/build checks and deployment secret scans. Research latency remains variable: the longest of these cases took approximately 6.5 minutes. Provider availability, source selection, interpretation errors and shared quotas can still affect future questions. The bounded batch is closed; there is no automatic retest or open-ended paid validation.
 
