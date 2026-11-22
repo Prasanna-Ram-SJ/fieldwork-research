@@ -7,7 +7,7 @@ import { completeResearch } from '@/lib/providers/research-completion';
 export async function planResearchQueries(
   question: string,
   recentContext?: string,
-  onUsage?: (input: number, output: number) => void
+  onUsage?: (input: number, output: number, complete?: boolean) => void
 ): Promise<QueryPlan> {
   const config = getNebiusConfig();
   if (!config) {
@@ -56,6 +56,7 @@ Rules:
     response_format: { type: 'json_object' },
     }, { timeout: 30000, maxRetries: 0 });
   } catch (error) {
+    onUsage?.(0, 0, false);
     if (!temporaryInferenceFailure(error)) throw error;
     // Planning is optional. Search the user's own question, not a fabricated
     // model plan. This is not another inference attempt or an answer fallback.
@@ -69,8 +70,8 @@ Rules:
     };
   }
 
+  onUsage?.(completion.usage?.prompt_tokens || 0, completion.usage?.completion_tokens || 0, !!completion.usage);
   const parsed: any = researchJson(completion);
-  onUsage?.(completion.usage?.prompt_tokens || 0, completion.usage?.completion_tokens || 0);
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
     throw new Error('The research model returned an invalid query plan.');
   }

@@ -13,7 +13,7 @@ test('the screenshot failure recovers missing paragraph and comparison support t
  const draft=raw();delete draft.blocks[0].support;delete draft.source_assessments[0].support;
  const h=harness([completion(draft),completion({approved_indices:[0,1],support_updates:[{index:0,support:support()},{index:1,support:support()}]})]);
  const result=await h.run();assert.equal(h.requests.length,2);assert.equal(result.output.blocks[0].text,draft.blocks[0].text);assert.equal(result.output.report.source_assessments.length,1);assertStrict(result);
- const input=JSON.parse(h.requests[1].messages[1].content);assert.deepEqual(input.statements[0].support,[]);assert.equal(input.sources[0].passages[0].text,text);
+ const input=JSON.parse(h.requests[1].messages.find(m=>m.role==='user').content);assert.deepEqual(input.statements[0].support,[]);assert.equal(input.sources[0].passages[0].text,text);
 });
 test('one malformed paragraph and one bad comparison do not erase an independently verified paragraph',async()=>{
  const draft=raw();draft.blocks.push({...draft.blocks[0],text:'Unsupported paragraph',source_refs:['S999']});delete draft.source_assessments[0].method;

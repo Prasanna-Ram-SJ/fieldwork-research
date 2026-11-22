@@ -75,9 +75,11 @@ The example is prepared editorial content, not a recorded live model run. Its pu
 
 ## Validation and remaining limitations
 
-As of November 22, the publication checkout passed **146 offline tests** and TypeScript checks. Coverage includes source and quotation integrity, missing-proof recovery, malformed output, guest-runner completion with mocked model responses, quota concurrency, signed cookies, PDF extraction, citation exports and navigation. The isolated Worker build and deployment secret scan also passed.
+As of November 22, the publication checkout passed **148 offline tests** and TypeScript checks. Coverage includes source and quotation integrity, missing-proof recovery, malformed output, guest-runner completion with mocked model responses, quota concurrency, signed cookies, PDF extraction, citation exports, navigation, interrupted background jobs and partial usage reporting. The isolated Worker build and deployment secret scan also passed.
 
 Newly authorized hosted checks recorded four complete signed-in research reports with substantive findings, methods and limitations. Additional checks exposed temporary provider-generation failures. The corrected handler preserves exact retrieved evidence and clearly identifies a missing synthesis instead of dropping the evidence or treating a service failure as scientific uncertainty. That recovery passed offline checks and a subsequent live check. The full requested twenty-case validation is still in progress; evidence-only recovery is not counted as a successful full report.
+
+Free-plan runtime failures led to moving hosted research behind a queue into a SQLite-backed Durable Object, with durable progress and caller-side interruption handling. Five subsequent guest questions completed full seven-to-nine-paragraph reports. Manual review still found a PDF-table interpretation ambiguity in one report; drafting and verification instructions were strengthened, with this limitation retained in the [validation record](VALIDATION.md). Report length and matching citations alone do not establish semantic correctness.
 
 Exact matching establishes that a quotation exists in the retrieved material; it does not prove scientific validity or that every inference is correct. Bounded retrieval can miss context, inaccessible pages may remain excerpt-only, and search ranking does not certify peer review or source independence. Scanned PDFs require external OCR. Planning and verification increase latency and provider cost. Guest allowances are shared and can be exhausted by other visitors.
 

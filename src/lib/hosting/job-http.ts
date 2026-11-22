@@ -107,7 +107,7 @@ export async function researchJobHttp(request: Request, env: JobEnvironment): Pr
             await env.RESEARCH_JOBS.send({ id: job.id });
         }
         catch {
-            await db.prepare("UPDATE research_jobs SET status='failed' WHERE id=?").bind(job.id).run();
+            await db.prepare("UPDATE research_jobs SET status='failed',sealed_input='' WHERE id=?").bind(job.id).run();
             throw new JobError('Research could not be queued. No provider request was made.');
         }
         const response = json({ job_id: job.id, poll_url: poll }, 202, { 'Set-Cookie': ticketCookie(job, poll) });

@@ -47,8 +47,32 @@ test('actual pipeline continues to web search after a 524 and records the planni
  const result=await conductResearch(question,'',[],(type,payload)=>events.push({type,payload}));
  assert.deepEqual(queries,[question]);assert.equal(planner.calls,1);assert.equal(result.evidence.length,1);
  assert.match(result.stopReason,/planning was unavailable/);
+ assert.equal(result.usageComplete,false,'A later successful synthesis must not conceal unmetered planning');
  assert.equal(events.find(e=>e.type==='queries_planned').payload.planning_fallback,true);
  assert.ok(events.some(e=>e.type==='search_completed'));
+});
+
+test('coverage preserves unknown usage on a failed stage or missing provider meter',async()=>{
+ for(const mode of ['failed','missing','complete']){
+  const metered=[];
+  const {assessCoverage}=loadTs('src/lib/research/coverage.ts',{
+   '@/lib/providers/nebius':{getNebiusConfig:()=>({model:'offline'}),createNebiusClient:()=>({})},
+   '@/lib/providers/research-completion':{completeResearch:async()=>{if(mode==='failed')throw Error('offline timeout');return{choices:[{finish_reason:'stop',message:{content:JSON.stringify({coverage:[{aspect_id:'a1',status:'partial',source_refs:[],reason:'Not established'}],refinement_query:null})}}],...(mode==='complete'?{usage:{prompt_tokens:123,completion_tokens:45}}:{})}}}
+  });
+  await assessCoverage({focus:'Offline',queries:['q'],aspects:[{id:'a1',question:'Methods?'}]},[],(...counts)=>metered.push(counts));
+  assert.deepEqual(metered,[mode==='complete'?[123,45,true]:[0,0,false]]);
+ }
+});
+
+test('guest completion discloses partial metering even when the final report succeeds',async()=>{
+ const events=[];
+ const {runGuestResearch}=loadTs('src/lib/guest/research.ts',{
+  '@/lib/providers/nebius':{getNebiusConfig:()=>({model:'offline'})},
+  '@/lib/research/pipeline':{conductResearch:async()=>({evidence:[{source_ref:'S1'}],plan:{},coverage:[],queries:[],stopReason:'Planning unavailable',inputTokens:10,outputTokens:5,actualTavilyCredits:1,usageComplete:false})},
+  '@/lib/research/report-synthesizer':{synthesizeReport:async()=>({output:{blocks:[]},inputTokens:20,outputTokens:10,usageComplete:true})}
+ });
+ await runGuestResearch('Offline question','',async e=>events.push(e));
+ const done=events.find(e=>e.type==='answer_completed');assert.ok(done);assert.equal(done.payload.token_usage_complete,false);assert.deepEqual(done.payload.tokens,{input:30,output:15});
 });
 
 test('timeout messages identify the service without blaming the question or exposing upstream response text',()=>{

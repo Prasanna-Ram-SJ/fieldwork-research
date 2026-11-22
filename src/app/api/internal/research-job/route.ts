@@ -3,7 +3,7 @@ import { consumeResearchJobs } from '@/lib/hosting/job-consumer';
 import { validQueueSignature, type JobEnvironment } from '@/lib/hosting/job-store';
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
-/** Called in-process by the queue handler, never through an outbound HTTP
+/** Called in-process by the research Object, never through an outbound HTTP
  * request. The public Worker blocks this path; the signature is defense in depth. */
 export async function POST(request:Request){
  try{

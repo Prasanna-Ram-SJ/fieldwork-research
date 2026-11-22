@@ -32,8 +32,8 @@ export function uniqueReadings(evidence: NormalizedEvidence[]) {
   });
 }
 export async function conductResearch(question: string, recentContext: string, reports: ResearchReport[], emit: Emit) {
-  let inputTokens = 0, outputTokens = 0, credits = 0;
-  const meter = (input: number, output: number) => { inputTokens += input; outputTokens += output; };
+  let inputTokens = 0, outputTokens = 0, credits = 0, usageComplete = true;
+  const meter = (input: number, output: number, complete = true) => { inputTokens += input; outputTokens += output; if (!complete) usageComplete = false; };
   await emit('planning_started', { question });
   const plan = await planResearchQueries(question, recentContext, meter);
   await emit('queries_planned', { ...plan });
@@ -79,5 +79,5 @@ export async function conductResearch(question: string, recentContext: string, r
   const remaining = assessment.coverage.filter(c => c.status !== 'addressed').length;
   const stopReason = !assessment.available ? 'Coverage assessment unavailable; conclusions are limited to the retrieved passages.' : remaining ? `Stopped within the three-search limit with ${remaining} partially answered or unanswered research questions. These gaps are not proof of absence.` : 'The selected passages address the planned questions within the bounded search. This is not an exhaustive review or a guarantee of truth.';
   const planningNotice = plan.planning_fallback ? 'AI query planning was unavailable; the original question was searched directly without a model retry. ' : '';
-  return { plan, evidence, coverage: assessment.coverage, queries, stopReason: planningNotice + stopReason, actualTavilyCredits: credits, inputTokens, outputTokens };
+  return { plan, evidence, coverage: assessment.coverage, queries, stopReason: planningNotice + stopReason, actualTavilyCredits: credits, inputTokens, outputTokens, usageComplete };
 }

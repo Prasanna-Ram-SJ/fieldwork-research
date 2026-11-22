@@ -17,7 +17,7 @@ export async function runGuestResearch(question:string, recentContext:string, em
     await send('evidence_selected',{selected_sources_count:result.evidence.length,sources:result.evidence.map(e=>({source_ref:e.source_ref,title:e.title,domain:e.domain,original_url:e.original_url,published_at:e.published_at,snippet_preview:e.snippet,reading:e.reading}))});
     await send('synthesis_started',{model_id:getNebiusConfig()?.model,evidence_count:result.evidence.length});
     const synthesis=await synthesizeReport(question,result.evidence,{plan:result.plan,coverage:result.coverage,queries:result.queries,stopReason:result.stopReason},recentContext,()=>send('verification_started',{message:'Checking report statements and quotations against the cited passages.'}));
-    await send('answer_completed',{assistant_message_id:randomUUID(),answer:synthesis.output,elapsed_ms:Date.now()-start,tavily_credits:result.actualTavilyCredits,tokens:{input:result.inputTokens+synthesis.inputTokens,output:result.outputTokens+synthesis.outputTokens},token_usage_complete:synthesis.usageComplete,guest:true});
+    await send('answer_completed',{assistant_message_id:randomUUID(),answer:synthesis.output,elapsed_ms:Date.now()-start,tavily_credits:result.actualTavilyCredits,tokens:{input:result.inputTokens+synthesis.inputTokens,output:result.outputTokens+synthesis.outputTokens},token_usage_complete:result.usageComplete && synthesis.usageComplete,guest:true});
   } catch(e) {
     const error=e as {message?:string;status?:number};
     const message=inferenceErrorMessage(error)||(error.message==='Connection error.'?'The AI service could not be reached. No automatic retry was made.':error.message || 'Guest research could not finish.');
